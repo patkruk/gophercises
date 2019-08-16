@@ -1,14 +1,15 @@
 package urlshort
 
 import (
+	"encoding/json"
 	"net/http"
 
 	yaml "gopkg.in/yaml.v2"
 )
 
 type pathUrl struct {
-	Path string `yaml:"path,omitempty"`
-	URL  string `yaml:"url,omitempty"`
+	Path string `yaml:"path,omitempty" json:"path,omitempty"`
+	URL  string `yaml:"url,omitempty" json:"url,omitempty"`
 }
 
 // MapHandler will return an http.HandlerFunc (which also
@@ -55,11 +56,39 @@ func YAMLHandler(yamlBytes []byte, fallback http.Handler) (http.HandlerFunc, err
 	}
 
 	// convert yaml into map
+	pathToUrls := convertSliceOfPathUrlsToMap(pathUrls)
+
+	// return MapHandler using the map
+	return MapHandler(pathToUrls, fallback), nil
+}
+
+// JSONHandler will parse the provided YAML and then return
+// an http.HandlerFunc (which also implements http.Handler)
+// that will attempt to map any paths to their corresponding
+// URL. If the path is not provided in the JSON, then the
+// fallback http.Handler will be called instead.
+func JSONHandler(jsonBytes []byte, fallback http.Handler) (http.HandlerFunc, error) {
+	// parse the json
+	var pathUrls []pathUrl
+	err := json.Unmarshal(jsonBytes, &pathUrls)
+	if err != nil {
+		return nil, err
+	}
+
+	// convert json into map
+	pathToUrls := convertSliceOfPathUrlsToMap(pathUrls)
+
+	// return MapHandler using the map
+	return MapHandler(pathToUrls, fallback), nil
+}
+
+// convertSliceOfPathUrlsToMap converts slices of pathUrl into a map
+func convertSliceOfPathUrlsToMap(pathUrls []pathUrl) map[string]string {
 	pathToUrls := make(map[string]string)
+
 	for _, pu := range pathUrls {
 		pathToUrls[pu.Path] = pu.URL
 	}
 
-	// return MapHandler using the map
-	return MapHandler(pathToUrls, fallback), nil
+	return pathToUrls
 }
