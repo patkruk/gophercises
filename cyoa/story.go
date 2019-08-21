@@ -82,12 +82,19 @@ var defaultHandlerTmpl = `
 var tpl *template.Template
 
 // NewHandler returns an http handler
-func NewHandler(s Story) http.Handler {
-	return handler{s}
+func NewHandler(s Story, t *template.Template) http.Handler {
+	// check if a template has been provided
+	// if not, used the default one
+	if t == nil {
+		t = tpl
+	}
+
+	return handler{s, t}
 }
 
 type handler struct {
 	s Story
+	t *template.Template
 }
 
 func (h handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
