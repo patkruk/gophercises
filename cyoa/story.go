@@ -5,6 +5,7 @@ import (
 	"io"
 	"log"
 	"net/http"
+	"strings"
 	"text/template"
 )
 
@@ -26,7 +27,7 @@ var defaultHandlerTmpl = `
     {{end}}
     <ul>
     {{range .Options}}
-    <li><a href="/story/{{.Chapter}}">{{.Text}}</a></li>
+    <li><a href="/{{.Chapter}}">{{.Text}}</a></li>
     {{end}}
     </ul>
   </body>
@@ -35,6 +36,7 @@ var defaultHandlerTmpl = `
 
 var tpl *template.Template
 
+// NewHandler returns an http handler
 func NewHandler(s Story) http.Handler {
 	return handler{s}
 }
@@ -44,10 +46,26 @@ type handler struct {
 }
 
 func (h handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-	err := tpl.Execute(w, h.s["intro"])
-	if err != nil {
-		log.Fatal(err)
+	path := strings.TrimSpace(r.URL.Path)
+	if path == "" || path == "/" {
+		path = "/intro"
 	}
+	path = path[1:] // get rid off the forward slash
+
+	// found the chapter
+	if chapter, ok := h.s[path]; ok {
+		err := tpl.Execute(w, chapter)
+
+		if err != nil {
+			log.Printf("%v", err)
+			http.Error(w, "Something went wrong...", http.StatusInternalServerError)
+		}
+
+		return
+	}
+
+	// not found the chapter
+	http.Error(w, "Chapter not found.", http.StatusNotFound)
 }
 
 // JSONStory decodes JSON to a Story
