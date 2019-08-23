@@ -82,6 +82,7 @@ var defaultHandlerTmpl = `
 var tpl *template.Template
 
 // HandlerOption is what's called a functional option
+// https://dave.cheney.net/2014/10/17/functional-options-for-friendly-apis
 type HandlerOption func(h *handler)
 
 // WithTemplate returns a HandlerOption with a template
