@@ -91,15 +91,32 @@ func WithTemplate(t *template.Template) HandlerOption {
 	}
 }
 
+// WithPathFunc parses the chapter
+func WithPathFunc(fn func(r *http.Request) string) HandlerOption {
+	return func(h *handler) {
+		h.pathFn = fn
+	}
+}
+
 type handler struct {
-	s Story
-	t *template.Template
+	s      Story
+	t      *template.Template
+	pathFn func(r *http.Request) string
+}
+
+func defaultPathFn(r *http.Request) string {
+	path := strings.TrimSpace(r.URL.Path)
+	if path == "" || path == "/" {
+		path = "/intro"
+	}
+
+	return path[1:] // get rid off the forward slash
 }
 
 // NewHandler returns an http handler
 func NewHandler(s Story, options ...HandlerOption) http.Handler {
 	// default handler
-	h := handler{s, tpl}
+	h := handler{s, tpl, defaultPathFn}
 
 	for _, opt := range options {
 		opt(&h)
@@ -109,11 +126,7 @@ func NewHandler(s Story, options ...HandlerOption) http.Handler {
 }
 
 func (h handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-	path := strings.TrimSpace(r.URL.Path)
-	if path == "" || path == "/" {
-		path = "/intro"
-	}
-	path = path[1:] // get rid off the forward slash
+	path := h.pathFn(r)
 
 	// found the chapter
 	if chapter, ok := h.s[path]; ok {
