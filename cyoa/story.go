@@ -81,20 +81,31 @@ var defaultHandlerTmpl = `
 
 var tpl *template.Template
 
-// NewHandler returns an http handler
-func NewHandler(s Story, t *template.Template) http.Handler {
-	// check if a template has been provided
-	// if not, used the default one
-	if t == nil {
-		t = tpl
-	}
+// HandlerOption is what's called a functional option
+type HandlerOption func(h *handler)
 
-	return handler{s, t}
+// WithTemplate returns a HandlerOption with a template
+func WithTemplate(t *template.Template) HandlerOption {
+	return func(h *handler) {
+		h.t = t
+	}
 }
 
 type handler struct {
 	s Story
 	t *template.Template
+}
+
+// NewHandler returns an http handler
+func NewHandler(s Story, options ...HandlerOption) http.Handler {
+	// default handler
+	h := handler{s, tpl}
+
+	for _, opt := range options {
+		opt(&h)
+	}
+
+	return h
 }
 
 func (h handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
@@ -106,7 +117,7 @@ func (h handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 	// found the chapter
 	if chapter, ok := h.s[path]; ok {
-		err := tpl.Execute(w, chapter)
+		err := h.t.Execute(w, chapter)
 
 		if err != nil {
 			log.Printf("%v", err)

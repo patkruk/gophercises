@@ -25,7 +25,9 @@ func main() {
 		log.Fatal(err)
 	}
 
-	h := cyoa.NewHandler(story, nil)
+	h := cyoa.NewHandler(story) // use the defaults
+	// tpl := template.Must(template.New("").Parse("Hello!"))
+	// h := cyoa.NewHandler(story, cyoa.WithTemplate(tpl))
 	fmt.Printf("Starting the server on port: %d\n", *port)
 	log.Fatal(http.ListenAndServe(fmt.Sprintf(":%d", *port), h))
 }
