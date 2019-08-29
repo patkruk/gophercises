@@ -28,13 +28,14 @@ func main() {
 	}
 
 	// call the specified domain
-	response, err := makeGetCall(*domain)
+	resp, err := http.Get(*domain)
 	if err != nil {
 		log.Fatal(err)
 	}
+	defer resp.Body.Close()
 
 	// parse all links on the site
-	urls := parseLinks(response)
+	urls := parseLinks(resp.Body)
 
 	// add new links to the map of links
 	for _, link := range urls {
@@ -94,16 +95,6 @@ func parseLinks(r io.Reader) []linkparser.Link {
 	return linkparser.Parse(r)
 }
 
-func makeGetCall(url string) (io.Reader, error) {
-	resp, err := http.Get(url)
-	if err != nil {
-		return nil, err
-	}
-	// defer resp.Body.Close()
-
-	return resp.Body, nil
-}
-
 // stripProtocolFromURL returns a "naked" URL without the protocol information
 // (e.g. http://www.example.com => example.com)
 func stripProtocolFromURL(URL string) (string, error) {
@@ -140,3 +131,13 @@ func isValidURL(url string) bool {
 
 	return true
 }
+
+// func makeGetCall(url string) (io.Reader, error) {
+// 	resp, err := http.Get(url)
+// 	if err != nil {
+// 		return nil, err
+// 	}
+// 	// defer resp.Body.Close()
+
+// 	return resp.Body, nil
+// }
