@@ -11,9 +11,6 @@ import (
 	"github.com/patkruk/gophercises/linkparser"
 )
 
-// Links contains a map of all links found on a site
-var Links map[string]Link
-
 // Link represents an individual link found on a site
 type Link struct {
 	URL     string
@@ -89,7 +86,7 @@ func main() {
 		}
 	}
 
-	fmt.Println(len(links))
+	fmt.Printf("Number of links: %d\n", len(links))
 	fmt.Println(links)
 }
 
