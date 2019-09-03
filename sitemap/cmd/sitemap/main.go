@@ -89,6 +89,7 @@ func main() {
 
 	fmt.Printf("Number of links: %d\n", len(links))
 	fmt.Println(links)
+	fmt.Println("\nNot finished")
 }
 
 func parseLinks(r io.Reader) []linkparser.Link {
@@ -131,13 +132,3 @@ func isValidURL(url string) bool {
 
 	return true
 }
-
-// func makeGetCall(url string) (io.Reader, error) {
-// 	resp, err := http.Get(url)
-// 	if err != nil {
-// 		return nil, err
-// 	}
-// 	// defer resp.Body.Close()
-
-// 	return resp.Body, nil
-// }
